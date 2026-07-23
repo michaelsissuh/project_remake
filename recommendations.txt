@@ -1,0 +1,45 @@
+## SECURITY RECOMMENDATIONS
+
+### Production Enhancements
+
+1. **Rate Limiting Infrastructure**
+   - Current: In-memory rate limiting (development-only)
+   - Recommended: Implement Redis for distributed rate limiting
+   - Benefits: Prevents brute force across multiple servers
+
+2. **HTTP Security Headers**
+   - Add Helmet.js for CSP, X-Frame-Options, X-Content-Type-Options
+   - Protects against common web vulnerabilities
+
+3. **Two-Factor Authentication (2FA)**
+   - Priority for admin accounts (critical role)
+   - Consider TOTP (Time-based OTP) apps like Google Authenticator
+
+4. **Request Logging & Monitoring**
+   - Audit trails for sensitive operations
+   - Real-time alerts for suspicious activity
+
+5. **Environment Configuration**
+   - Use secrets management (AWS Secrets, HashiCorp Vault)
+   - Never commit .env files to version control
+   - Rotate JWT_SECRET regularly
+
+6. **Database Backups**
+   - Automated daily backups
+   - Test recovery procedures
+
+7. **API Rate Limiting by Role**
+   - Different limits for students vs. admins
+   - Stricter limits on sensitive endpoints
+
+8. **HTTPS Enforcement**
+   - Force redirect HTTP → HTTPS
+   - Set HSTS headers for production
+
+9. **Input Sanitization Enhancement**
+   - Add additional validation for file uploads
+   - Restrict file types and sizes
+
+10. **Session Management**
+    - Implement session timeout (auto-logout)
+    - Revoke tokens on logout
