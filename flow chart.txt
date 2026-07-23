@@ -1,0 +1,618 @@
+DEAN PORTAL - APPLICATION FLOWCHARTS
+=====================================
+
+All flows below are in Mermaid format. Copy each flow into a Mermaid diagram tool or VS Code extension to visualize.
+
+=====================================
+FLOW 1: STUDENT REGISTRATION & LOGIN FLOW
+=====================================
+
+graph TD
+    A[Landing Page] --> B{User Choice}
+    B -->|Sign Up| C[Student Signup Page]
+    B -->|Login| D[Student Login Page]
+    
+    C --> E[Enter: Name, Email, Student ID, Password]
+    E --> F[Validate Email Format]
+    F -->|Invalid| G[Show Error]
+    G --> E
+    F -->|Valid| H[Check if Student Exists]
+    H -->|Exists| I[Show Error: Already Registered]
+    I --> E
+    H -->|New| J[Hash Password]
+    J --> K[Save to Database]
+    K --> L[Create JWT Token]
+    L --> M[Set HttpOnly Cookie]
+    M --> N[Redirect to Student Dashboard]
+    
+    D --> O[Enter: Student ID, Password]
+    O --> P[Query Database]
+    P -->|Not Found| Q[Show Error: Invalid Credentials]
+    Q --> O
+    P -->|Found| R[Compare Passwords]
+    R -->|No Match| Q
+    R -->|Match| L
+    
+    N --> S[Student Dashboard]
+
+=====================================
+FLOW 2: STUDENT FORGOT PASSWORD FLOW
+=====================================
+
+graph TD
+    A[Student Login Page] --> B[Click Forgot Password]
+    B --> C[Enter Email Address]
+    C --> D[Validate Email Format]
+    D -->|Invalid| E[Show Error]
+    E --> C
+    D -->|Valid| F[Check if Student Exists]
+    F -->|Not Found| G[Show Error: No Account]
+    G --> C
+    F -->|Found| H[Rate Limit Check: 1 per minute]
+    H -->|Too Soon| I[Show Error: Wait Before Retry]
+    I --> C
+    H -->|OK| J[Generate 6-Digit OTP]
+    J --> K[Hash OTP]
+    K --> L[Save to email_otps Table]
+    L --> M[Send OTP via Brevo Email API]
+    M --> N[Show: OTP Sent Message]
+    N --> O[User Receives Email]
+    O --> P[Enter OTP Code]
+    P --> Q[Query email_otps Table]
+    Q -->|Not Found| R[Show Error: No OTP]
+    R --> P
+    Q -->|Found| S{Check Expiration & Attempts}
+    S -->|Expired| T[Show Error: OTP Expired]
+    T --> P
+    S -->|Max Attempts| U[Show Error: Too Many Attempts]
+    U --> P
+    S -->|Valid| V[Enter New Password]
+    V --> W[Hash New Password]
+    W --> X[Update students Table]
+    X --> Y[Mark OTP as Used]
+    Y --> Z[Show Success: Password Reset]
+    Z --> AA[Redirect to Login]
+
+=====================================
+FLOW 3: ADMIN AUTHENTICATION FLOW
+=====================================
+
+graph TD
+    A[Admin Login Page] --> B[Enter: Username, Password]
+    B --> C[Query admin Table]
+    C -->|Not Found| D[Show Error: Invalid Credentials]
+    D --> B
+    C -->|Found| E[Compare Passwords with bcrypt]
+    E -->|No Match| D
+    E -->|Match| F[Create JWT Token]
+    F --> G[Set HttpOnly Cookie]
+    G --> H[Redirect to Admin Dashboard]
+    H --> I[Admin Dashboard]
+
+=====================================
+FLOW 4: VISITOR REGISTRATION & LOGIN FLOW
+=====================================
+
+graph TD
+    A[Landing Page] --> B{User Choice}
+    B -->|Sign Up| C[Visitor Signup Page]
+    B -->|Login| D[Visitor Login Page]
+    
+    C --> E[Enter: Name, Email, Password]
+    E --> F[Validate Email Format]
+    F -->|Invalid| G[Show Error]
+    G --> E
+    F -->|Valid| H[Validate Email Domain]
+    H -->|Invalid| I[Show Error: Domain Not Recognized]
+    I --> E
+    H -->|Valid| J[Check if Visitor Exists]
+    J -->|Exists| K[Show Error: Already Registered]
+    K --> E
+    J -->|New| L[Hash Password]
+    L --> M[Save to visitors Table]
+    M --> N[Create JWT Token]
+    N --> O[Set HttpOnly Cookie]
+    O --> P[Redirect to Visitor Dashboard]
+    
+    D --> Q[Enter: Email, Password]
+    Q --> R[Query visitors Table]
+    R -->|Not Found| S[Show Error: Invalid Credentials]
+    S --> Q
+    R -->|Found| T[Compare Passwords]
+    T -->|No Match| S
+    T -->|Match| N
+    
+    P --> U[Visitor Dashboard]
+
+=====================================
+FLOW 5: VISITOR FORGOT PASSWORD FLOW
+=====================================
+
+graph TD
+    A[Visitor Login Page] --> B[Click Forgot Password]
+    B --> C[Enter Email Address]
+    C --> D[Validate Email Format]
+    D -->|Invalid| E[Show Error]
+    E --> C
+    D -->|Valid| F[Check if Visitor Exists]
+    F -->|Not Found| G[Show Error: No Account]
+    G --> C
+    F -->|Found| H[Generate 6-Digit OTP]
+    H --> I[Hash OTP]
+    I --> J[Save to email_otps Table]
+    J --> K[Send OTP via Brevo Email API]
+    K --> L[Show: OTP Sent Message]
+    L --> M[User Receives Email]
+    M --> N[Enter OTP Code]
+    N --> O[Verify OTP]
+    O -->|Invalid/Expired| P[Show Error]
+    P --> N
+    O -->|Valid| Q[Enter New Password]
+    Q --> R[Hash New Password]
+    R --> S[Update visitors Table]
+    S --> T[Mark OTP as Used]
+    T --> U[Show Success]
+    U --> V[Redirect to Login]
+
+=====================================
+FLOW 6: HOSTEL AUTHENTICATION FLOW
+=====================================
+
+graph TD
+    A[Hostel Login Page] --> B[Fetch Hostels List from API]
+    B --> C[Display Hostel Dropdown]
+    C --> D[User Selects Hostel]
+    D --> E[Enter Password]
+    E --> F[Submit Form]
+    F --> G[Query hostels Table]
+    G -->|Not Found| H[Show Error: Invalid Hostel]
+    H --> D
+    G -->|Found| I[Compare Passwords with bcrypt]
+    I -->|No Match| J[Show Error: Invalid Password]
+    J --> E
+    I -->|Match| K[Create JWT Token]
+    K --> L[Set HttpOnly Cookie]
+    L --> M[Redirect to Hostel Dashboard]
+    M --> N[Hostel Dashboard]
+
+=====================================
+FLOW 7: STUDENT APPOINTMENT REQUEST FLOW
+=====================================
+
+graph TD
+    A[Student Dashboard] --> B[Navigate to Appointments]
+    B --> C[View Appointment Form]
+    C --> D[Enter: Date, Time, Reason]
+    D --> E[Submit Form]
+    E --> F[Server: Validate Fields]
+    F -->|Missing Fields| G[Show Error]
+    G --> D
+    F -->|Valid| H[Server: Save to appointments Table]
+    H --> I[Set Status = Pending]
+    I --> J[Create In-Memory Notification for Admin]
+    J --> K[Return Appointment to Client]
+    K --> L[Add Appointment to UI List]
+    L --> M[Show Success Message]
+    M --> N[Student Waits for Admin Response]
+    N --> O{Admin Action}
+    O -->|Approve| P[Status = Approved]
+    O -->|Decline| Q[Status = Declined]
+    O -->|Reschedule| R[Status = Rescheduled + New Date/Time]
+    P --> S[Notification Sent to Student]
+    Q --> S
+    R --> S
+    S --> T[Student Views Updated Appointment]
+
+=====================================
+FLOW 8: STUDENT COMPLAINT SUBMISSION FLOW
+=====================================
+
+graph TD
+    A[Student Dashboard] --> B[Navigate to Complaints]
+    B --> C[View Complaint Form]
+    C --> D[Enter: Complaint Text]
+    D --> E[Submit Form]
+    E --> F[Server: Validate Text]
+    F -->|Empty| G[Show Error]
+    G --> D
+    F -->|Valid| H[Server: Save to complaints Table]
+    H --> I[Set Status = Pending]
+    I --> J[Create In-Memory Notification for Admin]
+    J --> K[Return Complaint to Client]
+    K --> L[Add Complaint to UI List]
+    L --> M[Show Success Message]
+    M --> N[Student Waits for Admin Response]
+    N --> O[Admin Reviews Complaint]
+    O --> P[Admin Enters: Status, Remarks, Message]
+    P --> Q[Update complaints Table]
+    Q --> R[Notification Sent to Student]
+    R --> S[Student Views Updated Complaint]
+
+=====================================
+FLOW 9: STUDENT SUGGESTION SUBMISSION FLOW
+=====================================
+
+graph TD
+    A[Student Dashboard] --> B[Navigate to Complaints/Suggestions]
+    B --> C[View Suggestion Form]
+    C --> D[Enter: Title, Message]
+    D --> E[Submit Form]
+    E --> F[Server: Validate Fields]
+    F -->|Missing Fields| G[Show Error]
+    G --> D
+    F -->|Valid| H[Server: Save to suggestions Table]
+    H --> I[Return Suggestion to Client]
+    I --> J[Add Suggestion to UI List]
+    J --> K[Show Success Message]
+    K --> L[Admin Notified of New Suggestion]
+    L --> M[Admin Can Dismiss or Keep as Pending]
+
+=====================================
+FLOW 10: STUDENT CHAT WITH DEAN FLOW
+=====================================
+
+graph TD
+    A[Student Dashboard] --> B[Navigate to Chat with Dean]
+    B --> C[View Chat Interface]
+    C --> D{Chat Interaction}
+    D -->|Student Types Message| E[Enter Message Text]
+    E --> F[Send Message to Backend]
+    F --> G[Add Message to UI: Sender = Student]
+    G --> H[Call Cohere AI API]
+    H --> I{Cohere Response}
+    I -->|Success| J[Receive AI Generated Response]
+    I -->|Error| K[Show Error Message]
+    K --> D
+    J --> L[Add Message to UI: Sender = Dean]
+    L --> D
+    D -->|Continue| E
+
+=====================================
+FLOW 11: VISITOR BOOKING FLOW
+=====================================
+
+graph TD
+    A[Visitor Dashboard] --> B[Load Venues List from API]
+    B --> C[View Booking Form]
+    C --> D[Select: Venue, Date, Time]
+    D --> E[Click: Check Availability]
+    E --> F[Query visitor_bookings Table]
+    F --> G{Conflicts Found?}
+    G -->|Yes| H[Show: Slot Not Available]
+    H --> D
+    G -->|No| I[Show: Slot Available]
+    I --> J[Enter: Purpose]
+    J --> K[Upload: Document PDF/JPG/PNG]
+    K --> L[Validate File Type & Size]
+    L -->|Invalid| M[Show Error]
+    M --> K
+    L -->|Valid| N[Submit Booking]
+    N --> O[Save to visitor_bookings Table]
+    O --> P[Set Status = Pending]
+    P --> Q[Save Uploaded File to Uploads Folder]
+    Q --> R[Create In-Memory Notification for Admin]
+    R --> S[Return Booking to Client]
+    S --> T[Add Booking to UI List]
+    T --> U[Show Success Message]
+    U --> V[Visitor Waits for Admin Response]
+    V --> W{Admin Action}
+    W -->|Approve| X[Status = Approved]
+    W -->|Decline| Y[Status = Declined]
+    W -->|Reschedule| Z[Status = Rescheduled + New Date/Time]
+    X --> AA[Notification Sent to Visitor]
+    Y --> AA
+    Z --> AA
+    AA --> AB[Visitor Views Updated Booking]
+
+=====================================
+FLOW 12: VISITOR VENUE AVAILABILITY CHECK FLOW
+=====================================
+
+graph TD
+    A[Visitor Dashboard] --> B[Select Venue]
+    B --> C[Select Date]
+    C --> D[Select Time]
+    D --> E[Click: Check Availability]
+    E --> F[Frontend: Validate Selections]
+    F -->|Missing| G[Show Error: Complete All Fields]
+    G --> D
+    F -->|Valid| H[Send Query to Backend]
+    H --> I[Backend: Query visitor_bookings Table]
+    I --> J[Filter by venue_id, date, time]
+    J --> K[Filter by Status = Pending/Approved/Rescheduled]
+    K --> L{Conflicts Exist?}
+    L -->|Yes| M[Return: Available = false, Conflicts = N]
+    L -->|No| N[Return: Available = true]
+    M --> O[Frontend: Show Slot Not Available]
+    N --> P[Frontend: Show Slot Available]
+    O --> Q[User Can Try Different Time]
+    P --> Q[Proceed to Booking]
+
+=====================================
+FLOW 13: ADMIN MANAGE APPOINTMENTS FLOW
+=====================================
+
+graph TD
+    A[Admin Dashboard] --> B[Navigate to Manage Appointments]
+    B --> C[Fetch All Appointments from API]
+    C --> D[Display Appointments List]
+    D --> E{Admin Action}
+    E -->|View Details| F[Open Appointment Modal]
+    F --> G[Show: Student ID, Date, Time, Reason, Status]
+    G --> H[Close Modal]
+    E -->|Approve| I[Open Action Modal]
+    E -->|Decline| I
+    E -->|Reschedule| I
+    I --> J[Admin Can Enter: New Date, New Time]
+    J --> K[Admin Can Enter: Message]
+    K --> L[Admin Confirms Action]
+    L --> M[Send PUT Request to Backend]
+    M --> N[Backend: Validate Status]
+    N -->|Invalid| O[Return Error]
+    O --> I
+    N -->|Valid| P[Update appointments Table]
+    P --> Q[Add admin_message if Provided]
+    Q --> R[Create In-Memory Notification for Student]
+    R --> S[Return Updated Appointment]
+    S --> T[Update UI: Refresh Appointments List]
+    T --> U[Admin Sees Updated Status]
+
+=====================================
+FLOW 14: ADMIN MANAGE COMPLAINTS FLOW
+=====================================
+
+graph TD
+    A[Admin Dashboard] --> B[Navigate to Manage Complaints]
+    B --> C[Fetch All Complaints from API]
+    C --> D[Display Complaints List]
+    D --> E{Admin Action}
+    E -->|View Details| F[Open Complaint Modal]
+    F --> G[Show: Student ID, Text, Status, Remarks]
+    G --> H[Close Modal]
+    E -->|Reply| I[Open Reply Form]
+    I --> J[Enter: Admin Message]
+    J --> K[Enter: Status]
+    K --> L[Enter: Remarks]
+    L --> M[Admin Confirms]
+    M --> N[Send PUT Request to Backend]
+    N --> O[Backend: Update complaints Table]
+    O --> P[Save: admin_message, status, remarks]
+    P --> Q[Create In-Memory Notification for Student]
+    Q --> R[Return Updated Complaint]
+    R --> S[Update UI: Refresh Complaints List]
+    S --> T[Admin Sees Updated Complaint]
+
+=====================================
+FLOW 15: ADMIN MANAGE SUGGESTIONS FLOW
+=====================================
+
+graph TD
+    A[Admin Dashboard] --> B[Navigate to Manage Suggestions]
+    B --> C[Fetch All Suggestions from API]
+    C --> D[Display Suggestions List]
+    D --> E{Admin Action}
+    E -->|View Details| F[Show: Student ID, Title, Message]
+    F --> G[Return to List]
+    E -->|Dismiss| H[Mark Suggestion as Dismissed]
+    H --> I[Send PUT Request to Backend]
+    I --> J[Backend: Update suggestions Table]
+    J --> K[Return Updated Suggestion]
+    K --> L[Update UI: Refresh Suggestions List]
+    L --> M[Admin Sees Updated Suggestion]
+
+=====================================
+FLOW 16: ADMIN MANAGE HOSTELS FLOW
+=====================================
+
+graph TD
+    A[Admin Dashboard] --> B[Navigate to Manage Hostels]
+    B --> C[Fetch All Hostels from API]
+    C --> D[Display Hostels List]
+    D --> E{Admin Action}
+    E -->|Create New| F[Open Create Form]
+    F --> G[Enter: Hostel Name, Optional Password]
+    G --> H[Submit Form]
+    H --> I[Backend: Validate Hostel Name]
+    I -->|Duplicate| J[Return Error]
+    J --> F
+    I -->|Valid| K[Generate Password if Not Provided]
+    K --> L[Hash Password]
+    L --> M[Save to hostels Table]
+    M --> N[Return Hostel ID & Password]
+    N --> O[Show Success Message with Password]
+    O --> P[Add New Hostel to List]
+    E -->|Update| Q[Open Edit Form]
+    Q --> R[Edit: Name, Password]
+    R --> S[Submit Form]
+    S --> T[Backend: Update hostels Table]
+    T --> U[Return Updated Hostel]
+    U --> V[Update UI: Refresh List]
+    E -->|Delete| W[Check for Unresolved Complaints]
+    W -->|Has Unresolved| X[Show Error: Cannot Delete]
+    W -->|None| Y[Confirm Delete Action]
+    Y --> Z[Send DELETE Request]
+    Z --> AA[Backend: Delete from hostels Table]
+    AA --> AB[Return Success]
+    AB --> AC[Update UI: Remove from List]
+
+=====================================
+FLOW 17: ADMIN MANAGE VISITOR BOOKINGS FLOW
+=====================================
+
+graph TD
+    A[Admin Dashboard] --> B[Navigate to Manage Visitor Bookings]
+    B --> C[Fetch All Bookings from API]
+    C --> D[Display Bookings List]
+    D --> E{Admin Action}
+    E -->|View Details| F[Open Booking Modal]
+    F --> G[Show: Visitor Name/Email, Venue, Date, Time, Purpose]
+    G --> H[Show: Attachment Link if Uploaded]
+    H --> I[Close Modal]
+    E -->|Approve| J[Open Action Modal]
+    E -->|Decline| J
+    E -->|Reschedule| J
+    J --> K[Admin Can Enter: New Date, New Time]
+    K --> L[Admin Can Enter: Message]
+    L --> M[Admin Confirms Action]
+    M --> N[Send PUT Request to Backend]
+    N --> O[Backend: Validate Status]
+    O -->|Invalid| P[Return Error]
+    P --> J
+    O -->|Valid| Q[Update visitor_bookings Table]
+    Q --> R[Add admin_message if Provided]
+    R --> S[Create In-Memory Notification for Visitor]
+    S --> T[Return Updated Booking]
+    T --> U[Update UI: Refresh Bookings List]
+    U --> V[Admin Sees Updated Status]
+
+=====================================
+FLOW 18: HOSTEL SUBMIT COMPLAINT FLOW
+=====================================
+
+graph TD
+    A[Hostel Dashboard] --> B[Navigate to Submit Complaint]
+    B --> C[View Complaint Form]
+    C --> D[Enter: Complaint Text]
+    D --> E[Optional: Upload Attachment PDF/JPG/PNG]
+    E --> F[Submit Form]
+    F --> G[Server: Validate Text]
+    G -->|Empty| H[Show Error]
+    H --> D
+    G -->|Valid| I[Validate File Type if Provided]
+    I -->|Invalid| J[Show Error]
+    J --> E
+    I -->|Valid| K[Server: Save to hostel_complaints Table]
+    K --> L[Set Status = Pending]
+    L --> M[Save Uploaded File if Provided]
+    M --> N[Create In-Memory Notification for Admin]
+    N --> O[Return Complaint to Client]
+    O --> P[Add Complaint to UI List]
+    P --> Q[Show Success Message]
+    Q --> R[Hostel Waits for Admin Response]
+    R --> S[Admin Reviews & Responds]
+
+=====================================
+FLOW 19: HOSTEL VIEW & MANAGE COMPLAINTS FLOW
+=====================================
+
+graph TD
+    A[Hostel Dashboard] --> B[Navigate to My Complaints]
+    B --> C[Fetch Hostel Complaints from API]
+    C --> D[Display Complaints List]
+    D --> E{Hostel Action}
+    E -->|View Details| F[Open Complaint Modal]
+    F --> G[Show: Complaint Text, Status, Admin Response]
+    G --> H[Show: Attachment Link if Uploaded]
+    H --> I[Close Modal]
+    E -->|Check Status| J[View Complaint Status]
+    J -->|Pending| K[Show: Awaiting Admin Review]
+    J -->|In Progress| L[Show: Admin is Addressing]
+    J -->|Resolved| M[Show: Complaint Resolved]
+    J -->|Closed| N[Show: Complaint Closed]
+    K --> O[Refresh and Wait]
+    L --> O
+    M --> O
+    N --> O
+
+=====================================
+FLOW 20: NOTIFICATION SYSTEM FLOW
+=====================================
+
+graph TD
+    A[Event Triggered] --> B{Event Type}
+    B -->|Appointment Created| C[Admin Notification: New Appointment Request]
+    B -->|Complaint Submitted| D[Admin Notification: New Complaint]
+    B -->|Visitor Booking| E[Admin Notification: New Booking Request]
+    B -->|Status Updated| F[Student/Visitor Notification: Update Available]
+    C --> G[Create In-Memory Notification Object]
+    D --> G
+    E --> G
+    F --> G
+    G --> H[Add to notifications Array]
+    H --> I[Set read = false, addressed = false]
+    I --> J[Broadcast to Connected Clients]
+    J --> K{Notification Action}
+    K -->|User Views| L[Fetch /notifications Endpoint]
+    L --> M[Return notifications Array]
+    M --> N[Display in NotificationBar]
+    K -->|Mark as Read| O[PUT /notifications/:id/read]
+    O --> P[Set read = true]
+    P --> Q[Update UI]
+    K -->|Delete| R[DELETE /notifications/:id]
+    R --> S[Remove from notifications Array]
+    S --> Q
+    K -->|Clear All| T[DELETE /notifications]
+    T --> U[notifications Array = empty]
+    U --> Q
+
+=====================================
+FLOW 21: OTP EMAIL VERIFICATION FLOW (Complete)
+=====================================
+
+graph TD
+    A[User Requests OTP] --> B{Reason for OTP}
+    B -->|Student Forgot Password| C[User Provides Email]
+    B -->|Visitor Forgot Password| C
+    B -->|Email Verification| C
+    C --> D[Backend: Validate Email Format]
+    D -->|Invalid| E[Return Error: Invalid Email]
+    E --> F[User Can Retry]
+    D -->|Valid| G[Backend: Rate Limit Check]
+    G -->|Too Recent| H[Return Error: Wait 60 Seconds]
+    H --> F
+    G -->|OK| I[Backend: Check User Exists]
+    I -->|Not Found| J[Return Error: User Not Found]
+    J --> F
+    I -->|Found| K[Generate 6-Digit Random OTP]
+    K --> L[Hash OTP with bcrypt]
+    L --> M[Create Expiration: Current Time + 5 Minutes]
+    M --> N[Save to email_otps Table]
+    N --> O{Brevo API Call}
+    O -->|Success| P[Email Sent to User]
+    O -->|Failure| Q[Return Error: Email Failed]
+    Q --> F
+    P --> R[User Receives Email with OTP]
+    R --> S[User Enters OTP Code]
+    S --> T[Backend: Query email_otps Table]
+    T -->|Not Found| U[Return Error: No OTP Found]
+    U --> S
+    T -->|Found| V[Check Expiration]
+    V -->|Expired| W[Return Error: OTP Expired]
+    W --> X[Optionally Allow: Send New OTP]
+    X --> F
+    V -->|Valid| Y[Check Attempt Count]
+    Y -->|Max Attempts Exceeded| Z[Return Error: Too Many Attempts]
+    Z --> X
+    Y -->|Under Limit| AA[Compare User OTP with Stored Hash]
+    AA -->|No Match| AB[Increment Attempt Count]
+    AB --> AC[Return Error: Invalid OTP]
+    AC --> S
+    AA -->|Match| AD[Verify OTP as Used]
+    AD --> AE[Allow Password Reset]
+    AE --> AF[User Enters New Password]
+    AF --> AG[Hash New Password]
+    AG --> AH{Which User Type?}
+    AH -->|Student| AI[Update students Table]
+    AH -->|Visitor| AJ[Update visitors Table]
+    AI --> AK[Mark OTP as Used/Delete]
+    AJ --> AK
+    AK --> AL[Return Success: Password Changed]
+    AL --> AM[Redirect to Login]
+
+=====================================
+END OF FLOWCHARTS
+=====================================
+
+Usage Instructions:
+1. Copy any flowchart text (including graph TD and all lines)
+2. Go to: https://mermaid.live or use Mermaid extension in VS Code
+3. Paste the entire flow into the editor
+4. The diagram will render automatically
+
+For better organization, group related flows:
+- Authentication Flows: 1, 2, 3, 4, 5, 6
+- Student Features: 7, 8, 9, 10
+- Visitor Features: 11, 12
+- Admin Management: 13, 14, 15, 16, 17
+- Hostel Features: 18, 19
+- System Features: 20, 21

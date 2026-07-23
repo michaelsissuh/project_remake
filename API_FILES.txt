@@ -1,0 +1,359 @@
+================================================================================
+                    PROJECT API ENDPOINTS DOCUMENTATION
+================================================================================
+
+Base URL: http://localhost:5000/api
+
+================================================================================
+                            AUTHENTICATION ROUTES
+                              /api/auth/*
+================================================================================
+
+STUDENT AUTHENTICATION:
+  POST /auth/student/signup
+    - Student registration with name, email, student ID, and password
+    - Creates new student account
+
+  POST /auth/student/login
+    - Student login with student ID and password
+    - Returns authentication token
+
+  POST /auth/student/forgot-password
+    - Request OTP for password reset
+    - Sends OTP to registered email
+
+  POST /auth/student/reset-password
+    - Reset student password using email, OTP, and new password
+    - Verifies OTP before updating password
+
+ADMIN AUTHENTICATION:
+  POST /auth/admin/login
+    - Admin login with username and password
+    - Returns authentication token
+
+HOSTEL AUTHENTICATION:
+  POST /auth/hostel/login
+    - Hostel manager login
+    - Returns authentication token
+
+VISITOR AUTHENTICATION:
+  POST /auth/visitor/signup
+    - Visitor registration
+    - Creates new visitor account
+
+  POST /auth/visitor/login
+    - Visitor login
+    - Returns authentication token
+
+  POST /auth/visitor/forgot-password
+    - Request OTP for visitor password reset
+    - Sends OTP to registered email
+
+  POST /auth/visitor/reset-password
+    - Reset visitor password using email, OTP, and new password
+    - Verifies OTP before updating password
+
+OTP MANAGEMENT:
+  POST /auth/request-otp
+    - General OTP request endpoint
+    - Initiates OTP flow
+
+  POST /auth/verify-otp
+    - Verify OTP code
+    - Validates OTP and completes verification
+
+USER INFO:
+  GET /auth/me
+    - Get current authenticated user information
+    - Returns user role, ID, and other details
+
+
+================================================================================
+                        APPOINTMENTS ROUTES
+                       /api/appointments/*
+================================================================================
+
+STUDENT APPOINTMENTS:
+  POST /appointments/student
+    - Student creates appointment request with dean
+    - Protected (Student only)
+
+  GET /appointments/student/my
+    - Student fetches all their appointments
+    - Protected (Student only)
+    - Returns list of student's appointments with status
+
+ADMIN APPOINTMENTS:
+  GET /appointments/admin
+    - Admin fetches all appointment requests
+    - Protected (Admin only)
+    - Returns list of all appointments
+
+  PUT /appointments/admin/:id
+    - Admin updates appointment status (approve/decline)
+    - Protected (Admin only)
+    - Status: approved, declined, rescheduled
+
+
+================================================================================
+                         COMPLAINTS ROUTES
+                          /api/complaints/*
+================================================================================
+
+STUDENT COMPLAINTS (General):
+  POST /complaints/
+    - Student submits a general complaint
+    - Protected (Student only)
+
+  GET /complaints/my
+    - Student fetches their own complaints
+    - Protected (Student only)
+    - Returns list of student's complaints
+
+ADMIN COMPLAINTS MANAGEMENT:
+  GET /complaints/admin
+    - Admin fetches all complaints
+    - Protected (Admin only)
+    - Returns list of all student complaints
+
+  PUT /complaints/:id
+    - Admin updates complaint status or adds message
+    - Protected (Admin only)
+    - Actions: view, respond, resolve, dismiss
+
+
+================================================================================
+                         SUGGESTIONS ROUTES
+                          /api/suggestions/*
+================================================================================
+
+STUDENT SUGGESTIONS:
+  POST /suggestions/
+    - Student submits suggestion
+    - Protected (Student only)
+
+  GET /suggestions/my
+    - Student fetches their suggestions
+    - Protected (Student only)
+    - Returns list of student's suggestions
+
+ADMIN SUGGESTIONS:
+  GET /suggestions/admin
+    - Admin fetches all suggestions from students
+    - Protected (Admin only)
+    - Returns list of all suggestions
+
+
+================================================================================
+                       NOTIFICATIONS ROUTES
+                        /api/notifications/*
+================================================================================
+
+NOTIFICATION MANAGEMENT:
+  GET /notifications/
+    - Fetch user notifications
+    - Returns list of notifications
+
+  PUT /notifications/:id/read
+    - Mark specific notification as read
+    - Updates notification read status
+
+  DELETE /notifications/:id
+    - Delete a specific notification
+    - Removes notification from user's list
+
+  DELETE /notifications/
+    - Delete all notifications
+    - Clears user's notification history
+
+
+================================================================================
+                           CHAT ROUTES
+                            /api/chat/*
+================================================================================
+
+AI DEAN CHAT:
+  POST /chat/message
+    - Send message to AI Dean
+    - Receives AI-generated response using Cohere AI
+    - Uses command-r7b-12-2024 model for responses
+
+
+================================================================================
+                          HOSTEL ROUTES
+                           /api/hostels/*
+================================================================================
+
+HOSTEL MANAGEMENT (Public/Admin):
+  GET /hostels/
+    - Get all hostels (public - for login dropdown)
+    - Returns list of all hostels in system
+
+  POST /hostels/
+    - Admin creates new hostel
+    - Protected (Admin only)
+
+  PUT /hostels/:id
+    - Admin updates hostel details
+    - Protected (Admin only)
+
+  DELETE /hostels/:id
+    - Admin deletes hostel
+    - Protected (Admin only)
+
+HOSTEL MANAGER COMPLAINTS:
+  POST /hostels/complaints
+    - Hostel manager submits hostel complaint
+    - Protected (Hostel only)
+    - Supports file attachment (PDF, JPG, JPEG, PNG)
+
+  GET /hostels/complaints/my
+    - Hostel manager fetches their complaints
+    - Protected (Hostel only)
+    - Returns list of hostel's complaints
+
+ADMIN HOSTEL COMPLAINTS:
+  GET /hostels/complaints/admin
+    - Admin fetches all hostel complaints
+    - Protected (Admin only)
+    - Returns list of all hostel complaints
+
+  PUT /hostels/complaints/:id
+    - Admin updates hostel complaint status
+    - Protected (Admin only)
+
+
+================================================================================
+                         VISITOR ROUTES
+                          /api/visitor/*
+================================================================================
+
+VISITOR AUTHENTICATION:
+  POST /visitor/signup
+    - Visitor registration
+    - Creates new visitor account
+
+  POST /visitor/login
+    - Visitor login
+    - Returns authentication token
+
+VENUE MANAGEMENT:
+  GET /visitor/venues
+    - Get all available venues
+    - Public endpoint
+
+  GET /visitor/availability
+    - Check venue availability
+    - Query parameters: date, time, venue
+
+VISITOR BOOKINGS:
+  POST /visitor/bookings
+    - Visitor creates venue booking
+    - Protected (Visitor only)
+    - Supports file attachment (PDF, JPG, JPEG, PNG)
+
+  GET /visitor/bookings/my
+    - Visitor fetches their bookings
+    - Protected (Visitor only)
+    - Returns list of visitor's bookings
+
+ADMIN BOOKING MANAGEMENT:
+  GET /visitor/bookings/admin
+    - Admin fetches all bookings
+    - Protected (Admin only)
+    - Returns list of all bookings
+
+  PUT /visitor/bookings/admin/:id
+    - Admin updates booking status
+    - Protected (Admin only)
+    - Status: approved, declined, pending
+
+
+================================================================================
+                           HEALTH CHECK
+                          /api/health
+================================================================================
+
+SERVER STATUS:
+  GET /health
+    - Health check endpoint
+    - Returns: { status: 'ok', timestamp: ISO_DATETIME }
+    - Confirms server is running
+
+
+================================================================================
+                          AUTHENTICATION NOTES
+================================================================================
+
+- Authentication tokens are JWT-based with 1-day expiration
+- Tokens are sent as HttpOnly cookies for security
+- Protected routes require valid token and correct role
+- Roles: student, admin, hostel, visitor
+- All authentication errors return 400 or 401 status codes
+
+
+================================================================================
+                            FILE UPLOADS
+================================================================================
+
+Supported File Types:
+  - PDF (application/pdf)
+  - JPG (image/jpeg)
+  - JPEG (image/jpeg)
+  - PNG (image/png)
+
+Upload Endpoints:
+  - POST /hostels/complaints (Hostel complaints with attachments)
+  - POST /visitor/bookings (Visitor bookings with documents)
+
+Upload Location: /backend/uploads/
+File naming: {timestamp}-{sanitized_filename}
+
+
+================================================================================
+                            REQUEST/RESPONSE
+================================================================================
+
+Request Headers:
+  - Content-Type: application/json
+  - Authorization: (Included automatically via cookie)
+
+Common Status Codes:
+  - 200: Success
+  - 201: Created
+  - 400: Bad Request
+  - 401: Unauthorized
+  - 403: Forbidden
+  - 404: Not Found
+  - 500: Server Error
+
+
+================================================================================
+                         MIDDLEWARE PROTECTION
+================================================================================
+
+Route Protection:
+  - protectStudent: Only authenticated students
+  - protectAdmin: Only authenticated admins
+  - protectHostel: Only authenticated hostel managers
+  - protectVisitor: Only authenticated visitors
+  - authMiddleware: General authentication check
+
+
+================================================================================
+                       API ENVIRONMENT VARIABLES
+================================================================================
+
+Required Environment Variables:
+  - JWT_SECRET: Secret key for JWT token signing
+  - COHERE_API_KEY: API key for Cohere AI chat functionality
+  - NODE_ENV: development/production
+  - PORT: Server port (default: 5000)
+  - ALLOWED_ORIGINS: CORS allowed origins (comma-separated)
+
+Database:
+  - Database connection configured in backend/models/db.js
+  - MySQL/MariaDB database required
+
+
+================================================================================
